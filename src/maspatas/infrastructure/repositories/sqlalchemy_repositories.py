@@ -15,7 +15,7 @@ from maspatas.domain.ports.repositories import (
     SaleRepositoryPort,
 )
 from maspatas.domain.value_objects.common import ClientId, Money, ProductId
-from maspatas.infrastructure.db.models import ClientModel, InventoryModel, ProductModel, SaleModel
+from maspatas.infrastructure.db.models import ClientModel, InventoryModel, ProductModel, SaleLineModel, SaleModel
 
 
 class SQLAlchemyProductRepository(ProductRepositoryPort):
@@ -81,4 +81,17 @@ class SQLAlchemySaleRepository(SaleRepositoryPort):
                 currency=sale.total.currency,
             )
         )
+        self._session.flush()
+
+        for line in sale.lines:
+            self._session.add(
+                SaleLineModel(
+                    sale_id=sale.sale_id,
+                    product_id=line.product_id.value,
+                    quantity=line.quantity,
+                    unit_price_amount=line.unit_price.amount,
+                    currency=line.unit_price.currency,
+                )
+            )
+
         self._session.commit()
