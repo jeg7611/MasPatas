@@ -1,15 +1,15 @@
 services:
-  postgres:
-    image: postgres:16
-    container_name: maspatas-postgres
-    environment:
-      POSTGRES_USER: maspatas
-      POSTGRES_PASSWORD: maspatas
-      POSTGRES_DB: maspatas
+  mongo:
+    image: mongo:7
+    container_name: maspatas-mongo
+    restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: maspatas
+      MONGO_INITDB_ROOT_PASSWORD: maspatas
     volumes:
-      - maspatas_pg_data:/var/lib/postgresql/data
+      - maspatas_mongo_data:/data/db
 
 volumes:
-  maspatas_pg_data:
+  maspatas_mongo_data:

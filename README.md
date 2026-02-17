@@ -40,12 +40,12 @@ tests/
 uvicorn maspatas.interfaces.api.main:app --reload
 ```
 
-## PostgreSQL local
+## MongoDB local
 
-1. Levanta PostgreSQL:
+1. Levanta MongoDB:
 
 ```bash
-docker compose up -d postgres
+docker compose up -d mongo
 ```
 
 2. Copia variables de entorno:
@@ -54,14 +54,14 @@ docker compose up -d postgres
 cp .env.example .env
 ```
 
-3. Ejecuta la API usando backend PostgreSQL:
+3. Ejecuta la API usando backend MongoDB:
 
 ```bash
 export $(cat .env | xargs)
 uvicorn maspatas.interfaces.api.main:app --reload
 ```
 
-Al iniciar, la app crea la base de datos `maspatas` si no existe, crea tablas y carga datos semilla.
+Al iniciar, la app crea/usa la base de datos `maspatas` y carga datos semilla si la colección de productos está vacía.
 
 Tokens de ejemplo:
 - `admin-token`
@@ -80,4 +80,4 @@ Implementada en `ResiliencePolicy`:
 - Puertos de repositorio en `domain/ports/repositories.py`
 - Adaptadores:
   - `infrastructure/repositories/memory_repositories.py` (demo/tests)
-  - `infrastructure/repositories/sqlalchemy_repositories.py` (PostgreSQL con SQLAlchemy)
+  - `infrastructure/repositories/mongo_repositories.py` (MongoDB con PyMongo)
