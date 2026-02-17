@@ -14,6 +14,10 @@ class ProductRepositoryPort(ABC):
     def get_by_id(self, product_id: ProductId) -> Product | None:
         raise NotImplementedError
 
+    @abstractmethod
+    def save_product(self, product: Product) -> None:
+        raise NotImplementedError
+
 
 class ClientRepositoryPort(ABC):
     @abstractmethod

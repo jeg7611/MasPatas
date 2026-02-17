@@ -82,3 +82,44 @@ def test_sales_query_endpoints_and_openapi_paths() -> None:
     assert "/clients" in openapi_paths
     assert "/inventory" in openapi_paths
     assert "/sales" in openapi_paths
+
+
+def test_register_product_endpoint_ok() -> None:
+    response = client.post(
+        "/products",
+        headers={"Authorization": "Bearer inventory-token"},
+        json={
+            "product_id": "P-100",
+            "name": "Juguete de Hule",
+            "sku": "JUG-100",
+            "price_amount": "99.90",
+            "currency": "MXN",
+            "initial_stock": 5,
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["product_id"] == "P-100"
+
+    product_response = client.get("/products/P-100")
+    assert product_response.status_code == 200
+    inventory_response = client.get("/inventory")
+    assert any(item["product_id"] == "P-100" and item["stock"] == 5 for item in inventory_response.json())
+
+
+def test_register_product_endpoint_unauthorized_for_seller() -> None:
+    response = client.post(
+        "/products",
+        headers={"Authorization": "Bearer seller-token"},
+        json={
+            "product_id": "P-101",
+            "name": "Shampoo",
+            "sku": "SHA-101",
+            "price_amount": "150.00",
+            "currency": "MXN",
+            "initial_stock": 2,
+        },
+    )
+
+    assert response.status_code == 400

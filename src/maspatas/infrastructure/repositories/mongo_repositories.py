@@ -33,6 +33,18 @@ class MongoProductRepository(ProductRepositoryPort):
             price=Money(amount=Decimal(doc["price_amount"]), currency=doc["price_currency"]),
         )
 
+    def save_product(self, product: Product) -> None:
+        self._db.products.insert_one(
+            {
+                "_id": product.id.value,
+                "id": product.id.value,
+                "name": product.name,
+                "sku": product.sku,
+                "price_amount": str(product.price.amount),
+                "price_currency": product.price.currency,
+            }
+        )
+
 
 class MongoClientRepository(ClientRepositoryPort):
     def __init__(self, db: Database) -> None:
