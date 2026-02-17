@@ -79,7 +79,7 @@ def custom_openapi() -> dict:
 
 app.openapi = custom_openapi
 
-backend = os.getenv("MASPATAS_REPOSITORY_BACKEND", "memory").lower()
+backend = os.getenv("MASPATAS_REPOSITORY_BACKEND", "mongo").lower()
 
 if backend == "mongo":
     mongo_db = get_mongo_database()

@@ -10,7 +10,7 @@ from maspatas.infrastructure.repositories.memory_repositories import InMemoryCli
 
 
 def get_mongo_database() -> Database:
-    uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
+    uri = os.getenv("MONGODB_URI", "mongodb://maspatas:maspatas@localhost:27017/?authSource=admin")
     db_name = os.getenv("MONGODB_DB", "maspatas")
     client = MongoClient(uri)
     return client[db_name]
