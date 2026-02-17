@@ -8,6 +8,28 @@ from maspatas.interfaces.api.main import app
 client = TestClient(app)
 
 
+def test_generate_bearer_token_for_swagger() -> None:
+    response = client.post(
+        "/auth/token",
+        json={"username": "seller", "password": "maspatas123"},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["token_type"] == "bearer"
+    assert payload["access_token"] == "seller-token"
+
+
+def test_generate_bearer_token_invalid_credentials() -> None:
+    response = client.post(
+        "/auth/token",
+        json={"username": "seller", "password": "bad-password"},
+    )
+
+    assert response.status_code == 401
+
+
+
 def test_register_sale_endpoint_ok() -> None:
     response = client.post(
         "/sales",
@@ -83,6 +105,7 @@ def test_sales_query_endpoints_and_openapi_paths() -> None:
     assert "/clients" in openapi_paths
     assert "/inventory" in openapi_paths
     assert "/sales" in openapi_paths
+    assert "/auth/token" in openapi_paths
     assert security_schemes["HTTPBearer"] == {"type": "http", "scheme": "bearer"}
 
 

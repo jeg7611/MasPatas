@@ -4,7 +4,7 @@ import os
 from decimal import Decimal
 
 import structlog
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.openapi.utils import get_openapi
 
 from maspatas.application.dto.client_dto import RegisterClientInputDTO
@@ -34,7 +34,7 @@ from maspatas.infrastructure.repositories.mongo_repositories import (
 )
 from maspatas.infrastructure.resilience.concurrency import InMemoryLockAdapter
 from maspatas.infrastructure.resilience.policy import ResiliencePolicy
-from maspatas.infrastructure.security.auth import get_current_role
+from maspatas.infrastructure.security.auth import get_current_role, issue_token
 from maspatas.interfaces.api.schemas import (
     RegisterClientRequest,
     RegisterClientResponse,
@@ -44,6 +44,8 @@ from maspatas.interfaces.api.schemas import (
     RegisterSaleResponse,
 )
 from maspatas.interfaces.api.schemas import (
+    AuthTokenRequest,
+    AuthTokenResponse,
     ClientResponse,
     InventoryItemResponse,
     ProductResponse,
@@ -126,6 +128,14 @@ register_client_use_case = RegisterClientUseCase(
     concurrency=concurrency,
     authz=authz,
 )
+
+
+@app.post("/auth/token", response_model=AuthTokenResponse, tags=["Auth"])
+def generate_token(request: AuthTokenRequest) -> AuthTokenResponse:
+    token = issue_token(username=request.username, password=request.password)
+    if token is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales inválidas")
+    return AuthTokenResponse(access_token=token, token_type="bearer")
 
 
 @app.get("/health")

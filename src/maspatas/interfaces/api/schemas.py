@@ -20,6 +20,16 @@ class RegisterSaleResponse(BaseModel):
     currency: str
 
 
+class AuthTokenRequest(BaseModel):
+    username: str = Field(min_length=1)
+    password: str = Field(min_length=1)
+
+
+class AuthTokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+
+
 class RegisterProductRequest(BaseModel):
     product_id: str = Field(min_length=1)
     name: str = Field(min_length=1)
