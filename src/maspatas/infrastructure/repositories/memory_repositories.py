@@ -46,6 +46,9 @@ class InMemoryClientRepository(ClientRepositoryPort):
     def get_by_id(self, client_id: ClientId) -> Client | None:
         return self._clients.get(client_id.value)
 
+    def save_client(self, client: Client) -> None:
+        self._clients[client.id.value] = client
+
 
 class InMemoryInventoryRepository(InventoryRepositoryPort):
     def __init__(self, inventory: InventoryAggregate | None = None) -> None:

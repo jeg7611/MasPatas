@@ -24,6 +24,10 @@ class ClientRepositoryPort(ABC):
     def get_by_id(self, client_id: ClientId) -> Client | None:
         raise NotImplementedError
 
+    @abstractmethod
+    def save_client(self, client: Client) -> None:
+        raise NotImplementedError
+
 
 class InventoryRepositoryPort(ABC):
     @abstractmethod

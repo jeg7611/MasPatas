@@ -56,6 +56,16 @@ class MongoClientRepository(ClientRepositoryPort):
             return None
         return Client(id=ClientId(doc["id"]), full_name=doc["full_name"], email=doc["email"])
 
+    def save_client(self, client: Client) -> None:
+        self._db.clients.insert_one(
+            {
+                "_id": client.id.value,
+                "id": client.id.value,
+                "full_name": client.full_name,
+                "email": client.email,
+            }
+        )
+
 
 class MongoInventoryRepository(InventoryRepositoryPort):
     def __init__(self, db: Database) -> None:
