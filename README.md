@@ -68,6 +68,18 @@ Tokens de ejemplo:
 - `seller-token`
 - `inventory-token`
 
+### Obtener Bearer desde Swagger
+
+1. Abre `http://localhost:8000/docs`.
+2. Ejecuta `POST /auth/token` con alguna credencial demo:
+   - `admin` / `maspatas123`
+   - `seller` / `maspatas123`
+   - `inventory` / `maspatas123`
+3. Copia el valor de `access_token`.
+4. Da clic en **Authorize** y pega solo el token (sin prefijo `Bearer`).
+
+Swagger enviará automáticamente `Authorization: Bearer <token>` en los endpoints protegidos.
+
 ## Estrategia de resiliencia
 
 Implementada en `ResiliencePolicy`:
