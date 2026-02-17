@@ -1,0 +1,122 @@
+:root {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #17212f;
+  background-color: #f2f5fa;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.layout {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(18, 38, 63, 0.08);
+}
+
+.summary-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.summary-grid h3 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.summary-grid p {
+  margin: 4px 0 0;
+  color: #4b5b70;
+}
+
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.grid-2 {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.row-form,
+.column-form {
+  display: grid;
+  gap: 10px;
+}
+
+.row-form {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+input,
+select,
+button {
+  border-radius: 8px;
+  border: 1px solid #c2ccdb;
+  font-size: 0.95rem;
+  padding: 9px 12px;
+}
+
+button {
+  background: #1f6feb;
+  color: #fff;
+  font-weight: 600;
+  border: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+button.secondary {
+  background: #dce6f8;
+  color: #22324e;
+}
+
+.message {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+.message.ok {
+  background: #e6f8eb;
+  color: #216c3d;
+}
+
+.message.error {
+  background: #fdebec;
+  color: #932d32;
+}
+
+.sale-line {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 10px;
+}
+
+.list-card ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+}
