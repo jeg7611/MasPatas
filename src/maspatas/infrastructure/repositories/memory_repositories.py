@@ -31,6 +31,9 @@ class InMemoryProductRepository(ProductRepositoryPort):
     def get_by_id(self, product_id: ProductId) -> Product | None:
         return self._products.get(product_id.value)
 
+    def save_product(self, product: Product) -> None:
+        self._products[product.id.value] = product
+
 
 class InMemoryClientRepository(ClientRepositoryPort):
     def __init__(self, clients: dict[str, Client] | None = None) -> None:

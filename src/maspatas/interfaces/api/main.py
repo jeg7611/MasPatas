@@ -6,8 +6,10 @@ from decimal import Decimal
 import structlog
 from fastapi import Depends, FastAPI, HTTPException
 
+from maspatas.application.dto.product_dto import RegisterProductInputDTO
 from maspatas.application.dto.sale_dto import RegisterSaleInputDTO, SaleLineInputDTO
 from maspatas.application.services.authorization import AuthorizationService, Role
+from maspatas.application.use_cases.register_product import RegisterProductUseCase
 from maspatas.application.use_cases.register_sale import RegisterSaleUseCase
 from maspatas.domain.entities.inventory import InventoryAggregate, InventoryItem
 from maspatas.domain.exceptions.domain_exceptions import DomainError
@@ -30,7 +32,12 @@ from maspatas.infrastructure.repositories.mongo_repositories import (
 from maspatas.infrastructure.resilience.concurrency import InMemoryLockAdapter
 from maspatas.infrastructure.resilience.policy import ResiliencePolicy
 from maspatas.infrastructure.security.auth import get_current_role
-from maspatas.interfaces.api.schemas import RegisterSaleRequest, RegisterSaleResponse
+from maspatas.interfaces.api.schemas import (
+    RegisterProductRequest,
+    RegisterProductResponse,
+    RegisterSaleRequest,
+    RegisterSaleResponse,
+)
 from maspatas.interfaces.api.schemas import (
     ClientResponse,
     InventoryItemResponse,
@@ -72,11 +79,18 @@ concurrency = InMemoryLockAdapter()
 authz = AuthorizationService()
 resilience = ResiliencePolicy()
 
-use_case = RegisterSaleUseCase(
+register_sale_use_case = RegisterSaleUseCase(
     product_repo=product_repo,
     client_repo=client_repo,
     inventory_repo=inventory_repo,
     sale_repo=sale_repo,
+    concurrency=concurrency,
+    authz=authz,
+)
+
+register_product_use_case = RegisterProductUseCase(
+    product_repo=product_repo,
+    inventory_repo=inventory_repo,
     concurrency=concurrency,
     authz=authz,
 )
@@ -139,6 +153,31 @@ def get_product(product_id: str) -> ProductResponse:
         price_amount=str(Decimal(product["price_amount"])),
         currency=product["price_currency"],
     )
+
+
+@app.post("/products", response_model=RegisterProductResponse, tags=["Products"])
+def register_product(
+    request: RegisterProductRequest,
+    role: Role = Depends(get_current_role),
+) -> RegisterProductResponse:
+    try:
+        dto = RegisterProductInputDTO(
+            product_id=request.product_id,
+            name=request.name,
+            sku=request.sku,
+            price_amount=request.price_amount,
+            currency=request.currency,
+            initial_stock=request.initial_stock,
+        )
+        result = resilience.protected_call(lambda: register_product_use_case.execute(dto, role), timeout_seconds=5)
+        logger.info("product_registered", product_id=result.product_id, role=role.value)
+        return RegisterProductResponse(**result.__dict__)
+    except DomainError as exc:
+        logger.warning("domain_error", detail=str(exc), role=role.value)
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:  # noqa: BLE001
+        logger.error("unexpected_error", detail=str(exc))
+        raise HTTPException(status_code=500, detail="Error interno") from exc
 
 
 @app.get("/clients", response_model=list[ClientResponse], tags=["Clients"])
@@ -274,7 +313,7 @@ def register_sale(
             lines=tuple(SaleLineInputDTO(product_id=line.product_id, quantity=line.quantity) for line in request.lines),
         )
 
-        result = resilience.protected_call(lambda: use_case.execute(dto, role), timeout_seconds=5)
+        result = resilience.protected_call(lambda: register_sale_use_case.execute(dto, role), timeout_seconds=5)
         logger.info("sale_registered", sale_id=result.sale_id, total=result.total_amount, currency=result.currency, role=role.value)
         return RegisterSaleResponse(**result.__dict__)
     except DomainError as exc:
