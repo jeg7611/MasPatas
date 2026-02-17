@@ -8,7 +8,7 @@ from maspatas.application.services.authorization import AuthorizationService, Ro
 from maspatas.application.use_cases.register_sale import RegisterSaleUseCase
 from maspatas.domain.entities.inventory import InventoryAggregate, InventoryItem
 from maspatas.domain.exceptions.domain_exceptions import DomainError
-from maspatas.domain.value_objects.common import ProductId
+from maspatas.domain.value_objects.common import ClientId, ProductId
 from maspatas.infrastructure.logging.config import configure_logging
 from maspatas.infrastructure.repositories.memory_repositories import (
     InMemoryClientRepository,
@@ -20,6 +20,13 @@ from maspatas.infrastructure.resilience.concurrency import InMemoryLockAdapter
 from maspatas.infrastructure.resilience.policy import ResiliencePolicy
 from maspatas.infrastructure.security.auth import get_current_role
 from maspatas.interfaces.api.schemas import RegisterSaleRequest, RegisterSaleResponse
+from maspatas.interfaces.api.schemas import (
+    ClientResponse,
+    InventoryItemResponse,
+    ProductResponse,
+    SaleLineResponse,
+    SaleResponse,
+)
 
 configure_logging()
 logger = structlog.get_logger(__name__)
@@ -54,6 +61,102 @@ use_case = RegisterSaleUseCase(
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/products", response_model=list[ProductResponse], tags=["Products"])
+def list_products() -> list[ProductResponse]:
+    return [
+        ProductResponse(
+            id=product.id.value,
+            name=product.name,
+            sku=product.sku,
+            price_amount=str(product.price.amount),
+            currency=product.price.currency,
+        )
+        for product in product_repo._products.values()  # noqa: SLF001
+    ]
+
+
+@app.get("/products/{product_id}", response_model=ProductResponse, tags=["Products"])
+def get_product(product_id: str) -> ProductResponse:
+    product = product_repo.get_by_id(ProductId(product_id))
+    if not product:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+    return ProductResponse(
+        id=product.id.value,
+        name=product.name,
+        sku=product.sku,
+        price_amount=str(product.price.amount),
+        currency=product.price.currency,
+    )
+
+
+@app.get("/clients", response_model=list[ClientResponse], tags=["Clients"])
+def list_clients() -> list[ClientResponse]:
+    return [
+        ClientResponse(id=client.id.value, full_name=client.full_name, email=client.email)
+        for client in client_repo._clients.values()  # noqa: SLF001
+    ]
+
+
+@app.get("/clients/{client_id}", response_model=ClientResponse, tags=["Clients"])
+def get_client(client_id: str) -> ClientResponse:
+    client = client_repo.get_by_id(client_id=ClientId(client_id))
+    if not client:
+        raise HTTPException(status_code=404, detail="Cliente no encontrado")
+    return ClientResponse(id=client.id.value, full_name=client.full_name, email=client.email)
+
+
+@app.get("/inventory", response_model=list[InventoryItemResponse], tags=["Inventory"])
+def get_inventory() -> list[InventoryItemResponse]:
+    inventory = inventory_repo.get_inventory()
+    return [InventoryItemResponse(product_id=item.product_id.value, stock=item.stock) for item in inventory.items.values()]
+
+
+@app.get("/sales", response_model=list[SaleResponse], tags=["Sales"])
+def list_sales() -> list[SaleResponse]:
+    return [
+        SaleResponse(
+            sale_id=sale.sale_id,
+            client_id=sale.client_id.value,
+            created_at=sale.created_at.isoformat(),
+            total_amount=str(sale.total.amount),
+            currency=sale.total.currency,
+            lines=[
+                SaleLineResponse(
+                    product_id=line.product_id.value,
+                    quantity=line.quantity,
+                    unit_price=str(line.unit_price.amount),
+                    subtotal=str(line.subtotal.amount),
+                )
+                for line in sale.lines
+            ],
+        )
+        for sale in sale_repo.sales
+    ]
+
+
+@app.get("/sales/{sale_id}", response_model=SaleResponse, tags=["Sales"])
+def get_sale(sale_id: str) -> SaleResponse:
+    sale = next((record for record in sale_repo.sales if record.sale_id == sale_id), None)
+    if not sale:
+        raise HTTPException(status_code=404, detail="Venta no encontrada")
+    return SaleResponse(
+        sale_id=sale.sale_id,
+        client_id=sale.client_id.value,
+        created_at=sale.created_at.isoformat(),
+        total_amount=str(sale.total.amount),
+        currency=sale.total.currency,
+        lines=[
+            SaleLineResponse(
+                product_id=line.product_id.value,
+                quantity=line.quantity,
+                unit_price=str(line.unit_price.amount),
+                subtotal=str(line.subtotal.amount),
+            )
+            for line in sale.lines
+        ],
+    )
 
 
 @app.post("/sales", response_model=RegisterSaleResponse)
