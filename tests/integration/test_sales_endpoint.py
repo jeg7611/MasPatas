@@ -78,10 +78,12 @@ def test_sales_query_endpoints_and_openapi_paths() -> None:
     openapi_response = client.get("/openapi.json")
     assert openapi_response.status_code == 200
     openapi_paths = openapi_response.json()["paths"]
+    security_schemes = openapi_response.json()["components"]["securitySchemes"]
     assert "/products" in openapi_paths
     assert "/clients" in openapi_paths
     assert "/inventory" in openapi_paths
     assert "/sales" in openapi_paths
+    assert security_schemes["HTTPBearer"] == {"type": "http", "scheme": "bearer"}
 
 
 def test_register_product_endpoint_ok() -> None:

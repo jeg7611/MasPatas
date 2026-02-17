@@ -5,6 +5,7 @@ from decimal import Decimal
 
 import structlog
 from fastapi import Depends, FastAPI, HTTPException
+from fastapi.openapi.utils import get_openapi
 
 from maspatas.application.dto.client_dto import RegisterClientInputDTO
 from maspatas.application.dto.product_dto import RegisterProductInputDTO
@@ -54,6 +55,27 @@ configure_logging()
 logger = structlog.get_logger(__name__)
 
 app = FastAPI(title="MasPatas Inventory & Sales")
+
+
+def custom_openapi() -> dict:
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    openapi_schema = get_openapi(
+        title=app.title,
+        version="1.0.0",
+        description="API de inventario y ventas para MasPatas",
+        routes=app.routes,
+    )
+    openapi_schema.setdefault("components", {}).setdefault("securitySchemes", {})["HTTPBearer"] = {
+        "type": "http",
+        "scheme": "bearer",
+    }
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
 
 backend = os.getenv("MASPATAS_REPOSITORY_BACKEND", "memory").lower()
 
