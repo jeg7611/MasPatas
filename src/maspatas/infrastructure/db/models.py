@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import Column, DateTime, Integer, Numeric, String
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, Numeric, String
 from sqlalchemy.orm import DeclarativeBase
 
 
@@ -40,4 +40,15 @@ class SaleModel(Base):
     client_id = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False)
     total_amount = Column(Numeric(12, 2), nullable=False)
+    currency = Column(String(3), nullable=False)
+
+
+class SaleLineModel(Base):
+    __tablename__ = "sale_lines"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    sale_id = Column(String, ForeignKey("sales.sale_id", ondelete="CASCADE"), nullable=False)
+    product_id = Column(String, nullable=False)
+    quantity = Column(Integer, nullable=False)
+    unit_price_amount = Column(Numeric(12, 2), nullable=False)
     currency = Column(String(3), nullable=False)

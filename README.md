@@ -40,6 +40,29 @@ tests/
 uvicorn maspatas.interfaces.api.main:app --reload
 ```
 
+## PostgreSQL local
+
+1. Levanta PostgreSQL:
+
+```bash
+docker compose up -d postgres
+```
+
+2. Copia variables de entorno:
+
+```bash
+cp .env.example .env
+```
+
+3. Ejecuta la API usando backend PostgreSQL:
+
+```bash
+export $(cat .env | xargs)
+uvicorn maspatas.interfaces.api.main:app --reload
+```
+
+Al iniciar, la app crea la base de datos `maspatas` si no existe, crea tablas y carga datos semilla.
+
 Tokens de ejemplo:
 - `admin-token`
 - `seller-token`
