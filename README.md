@@ -93,3 +93,22 @@ Implementada en `ResiliencePolicy`:
 - Adaptadores:
   - `infrastructure/repositories/memory_repositories.py` (demo/tests)
   - `infrastructure/repositories/mongo_repositories.py` (MongoDB con PyMongo)
+
+## Frontend React
+
+Se agregó un frontend en `frontend/` para operar la API desde una sola pantalla:
+
+- Login para obtener token (`POST /auth/token`)
+- Registro de productos, clientes y ventas
+- Listado de inventario y ventas
+- Métricas rápidas de stock e ingresos
+
+### Ejecutar frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+El frontend usa `VITE_API_URL` (por defecto `/api`) y Vite tiene proxy a `http://localhost:8000`.
