@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import os
+
+os.environ.setdefault("MASPATAS_REPOSITORY_BACKEND", "memory")
+
 from fastapi.testclient import TestClient
 
 from maspatas.interfaces.api.main import app
