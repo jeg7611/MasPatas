@@ -38,6 +38,18 @@ class RegisterProductResponse(BaseModel):
     initial_stock: int
 
 
+class RegisterClientRequest(BaseModel):
+    client_id: str = Field(min_length=1)
+    full_name: str = Field(min_length=1)
+    email: str = Field(min_length=1)
+
+
+class RegisterClientResponse(BaseModel):
+    client_id: str
+    full_name: str
+    email: str
+
+
 class ProductResponse(BaseModel):
     id: str
     name: str

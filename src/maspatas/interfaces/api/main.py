@@ -6,9 +6,11 @@ from decimal import Decimal
 import structlog
 from fastapi import Depends, FastAPI, HTTPException
 
+from maspatas.application.dto.client_dto import RegisterClientInputDTO
 from maspatas.application.dto.product_dto import RegisterProductInputDTO
 from maspatas.application.dto.sale_dto import RegisterSaleInputDTO, SaleLineInputDTO
 from maspatas.application.services.authorization import AuthorizationService, Role
+from maspatas.application.use_cases.register_client import RegisterClientUseCase
 from maspatas.application.use_cases.register_product import RegisterProductUseCase
 from maspatas.application.use_cases.register_sale import RegisterSaleUseCase
 from maspatas.domain.entities.inventory import InventoryAggregate, InventoryItem
@@ -33,6 +35,8 @@ from maspatas.infrastructure.resilience.concurrency import InMemoryLockAdapter
 from maspatas.infrastructure.resilience.policy import ResiliencePolicy
 from maspatas.infrastructure.security.auth import get_current_role
 from maspatas.interfaces.api.schemas import (
+    RegisterClientRequest,
+    RegisterClientResponse,
     RegisterProductRequest,
     RegisterProductResponse,
     RegisterSaleRequest,
@@ -91,6 +95,12 @@ register_sale_use_case = RegisterSaleUseCase(
 register_product_use_case = RegisterProductUseCase(
     product_repo=product_repo,
     inventory_repo=inventory_repo,
+    concurrency=concurrency,
+    authz=authz,
+)
+
+register_client_use_case = RegisterClientUseCase(
+    client_repo=client_repo,
     concurrency=concurrency,
     authz=authz,
 )
@@ -172,6 +182,28 @@ def register_product(
         result = resilience.protected_call(lambda: register_product_use_case.execute(dto, role), timeout_seconds=5)
         logger.info("product_registered", product_id=result.product_id, role=role.value)
         return RegisterProductResponse(**result.__dict__)
+    except DomainError as exc:
+        logger.warning("domain_error", detail=str(exc), role=role.value)
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:  # noqa: BLE001
+        logger.error("unexpected_error", detail=str(exc))
+        raise HTTPException(status_code=500, detail="Error interno") from exc
+
+
+@app.post("/clients", response_model=RegisterClientResponse, tags=["Clients"])
+def register_client(
+    request: RegisterClientRequest,
+    role: Role = Depends(get_current_role),
+) -> RegisterClientResponse:
+    try:
+        dto = RegisterClientInputDTO(
+            client_id=request.client_id,
+            full_name=request.full_name,
+            email=request.email,
+        )
+        result = resilience.protected_call(lambda: register_client_use_case.execute(dto, role), timeout_seconds=5)
+        logger.info("client_registered", client_id=result.client_id, role=role.value)
+        return RegisterClientResponse(**result.__dict__)
     except DomainError as exc:
         logger.warning("domain_error", detail=str(exc), role=role.value)
         raise HTTPException(status_code=400, detail=str(exc)) from exc

@@ -13,8 +13,8 @@ class Role(str, Enum):
 
 class AuthorizationService:
     role_permissions: dict[Role, set[str]] = {
-        Role.ADMIN: {"register_sale", "manage_inventory"},
-        Role.VENDEDOR: {"register_sale"},
+        Role.ADMIN: {"register_sale", "manage_inventory", "register_client"},
+        Role.VENDEDOR: {"register_sale", "register_client"},
         Role.INVENTARIO: {"manage_inventory"},
     }
 

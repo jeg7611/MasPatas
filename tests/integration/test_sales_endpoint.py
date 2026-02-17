@@ -123,3 +123,36 @@ def test_register_product_endpoint_unauthorized_for_seller() -> None:
     )
 
     assert response.status_code == 400
+
+
+def test_register_client_endpoint_ok() -> None:
+    response = client.post(
+        "/clients",
+        headers={"Authorization": "Bearer seller-token"},
+        json={
+            "client_id": "C-100",
+            "full_name": "Laura Gómez",
+            "email": "laura@cliente.com",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["client_id"] == "C-100"
+
+    client_response = client.get("/clients/C-100")
+    assert client_response.status_code == 200
+
+
+def test_register_client_endpoint_unauthorized_for_inventory() -> None:
+    response = client.post(
+        "/clients",
+        headers={"Authorization": "Bearer inventory-token"},
+        json={
+            "client_id": "C-101",
+            "full_name": "Cliente No Autorizado",
+            "email": "noautorizado@cliente.com",
+        },
+    )
+
+    assert response.status_code == 400

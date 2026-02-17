@@ -44,6 +44,10 @@ class SQLAlchemyClientRepository(ClientRepositoryPort):
             return None
         return Client(id=ClientId(model.id), full_name=model.full_name, email=model.email)
 
+    def save_client(self, client: Client) -> None:
+        self._session.add(ClientModel(id=client.id.value, full_name=client.full_name, email=client.email))
+        self._session.commit()
+
 
 class SQLAlchemyInventoryRepository(InventoryRepositoryPort):
     def __init__(self, session: Session) -> None:
