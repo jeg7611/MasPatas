@@ -6,8 +6,7 @@ requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115.0",
   "uvicorn>=0.30.0",
-  "sqlalchemy>=2.0.30",
-  "psycopg2-binary>=2.9.9",
+  "pymongo>=4.8.0",
   "pydantic>=2.8.0",
   "tenacity>=8.4.0",
   "pybreaker>=1.2.0",
